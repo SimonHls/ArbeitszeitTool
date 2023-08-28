@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 import Collapsible from 'react-native-collapsible';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { styles } from './AppStyle';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
+
 import Slider from '@react-native-community/slider';
+import { render } from 'react-dom';
 
 export default function App() {
 
@@ -29,6 +32,9 @@ export default function App() {
   const [lunchPauseError, setLunchPauseError] = useState(false);
   const [lunchPauseAfterText, setLunchPauseAfterText] = useState('');
   const [lunchPauseAfterError, setLunchPauseAfterError] = useState(false);
+
+
+  const [isConfigLoading, setIsConfigLoading] = useState(false);
 
   const onChangeArrivalTime = (event, selectedDate) => {
     if (selectedDate) {
@@ -77,6 +83,7 @@ export default function App() {
   const results = calculateResults();
 
   const saveConfig = async () => {
+    if (isConfigLoading) return;  // Speicherung verhindern, wenn Konfiguration geladen wird
     try {
       await AsyncStorage.setItem('config', JSON.stringify({
         solarHours,
@@ -85,7 +92,7 @@ export default function App() {
         lunchPauseAfter
       }));
     } catch (error) {
-      // Fehler beim Speichern der Daten
+      console.log(error);
     }
   };
 
@@ -95,160 +102,209 @@ export default function App() {
 
   useEffect(() => {
     const loadConfig = async () => {
+      setIsConfigLoading(true);
       try {
         const value = await AsyncStorage.getItem('config');
         if(value !== null) {
           const config = JSON.parse(value);
-          setSolarHours(config.solarHours);
-          setBreakfastPause(config.breakfastPause);
-          setLunchPause(config.lunchPause);
-          setLunchPauseAfter(config.lunchPauseAfter);
+          setSolarHours(config.solarHours || 8);
+          setBreakfastPause(config.breakfastPause || 15);
+          setLunchPause(config.lunchPause || 30);
+          setLunchPauseAfter(config.lunchPauseAfter || 6.25);
+        } else {
+          // Setze hier die Standardwerte
+          setSolarHours(8);
+          setBreakfastPause(15);
+          setLunchPause(30);
+          setLunchPauseAfter(6.25);
         }
+        // Textwert setzen, damit die Textfelder nicht leer sind
+        setSolarHoursText(solarHours.toString());
+        setBreakfastPauseText(breakfastPause.toString());
+        setLunchPauseText(lunchPause.toString());
+        setLunchPauseAfterText(lunchPauseAfter.toString());
+
       } catch (error) {
-        // Fehler beim Laden der Daten
+        console.log(error);
       }
+      setIsConfigLoading(false);
     };
 
     loadConfig();
   }, []);
 
 
+
+  if (isConfigLoading) {
+    return <Text>Loading...</Text>;
+  }
+
   return (
-    <ScrollView style={{ flex: 1, padding: 20, backgroundColor: '#ebebeb' }}>
+    <View style={{ flex: 1, paddingTop:35, backgroundColor: 'white'}}>
 
       <View style={styles.header}>
-        <Text style={styles.headerText}>Arbeitszeit Helper</Text>
+        <Text style={styles.headerText}>Gleitzeit-Kumpel</Text>
       </View>
 
-      <View style={styles.contentWrapper}>
-        <TouchableOpacity onPress={() => setConfigCollapsed(!configCollapsed)}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' , alignItems: 'center', }}>
-            { configCollapsed ? (
-              <>
-                <Text style={styles.miniHeader}>Konfiguration  ausklappen</Text>
-                <Icon
-                  name={configCollapsed ? 'chevron-down' : 'chevron-up'}
-                  size={15}
-                />
-              </>
-            ) : (
-              <>
-                <Text style={styles.miniHeader}>Konfiguration  einklappen</Text>
-                <Icon
-                  name={configCollapsed ? 'chevron-down' : 'chevron-up'}
-                  size={15}
-                />
-              </>
-            )}
-          </View>
-        </TouchableOpacity>
+      <ScrollView style={{  }}>
 
-        <Collapsible collapsed={configCollapsed}>
-          <Text style={styles.textInputExplainerText}>Die Sollarbeitszeit pro Tag in Stunden</Text>
-          <TextInput
-            placeholder={"Sollarbeitszeit in Stunden"}
-            value={solarHoursText}
-            onChangeText={text => {
-              setSolarHoursText(text);
-              validateNumericInput(text, setSolarHours, setSolarHoursError);
-            }}
-            onBlur={() => {
-              if (solarHoursText.trim() === '') {
-                setSolarHours('');
-              }
-            }}
-            keyboardType="numeric"
-            style={styles.TextInput}
-          />
-          {solarHoursError && <Text style={{color: 'red'}}>Ungültige Eingabe</Text>}
+        {/* App content wrapper */}
+        <View style={{ marginBottom: 60, paddingLeft: 10, paddingRight: 10, }}> 
 
+          <View>
+            <View style={styles.contentWrapper}>
+              <View style={styles.inputsWrapper}>
+                <Text style={styles.miniHeader}>Arbeitszeiten eingeben</Text>
+                <View style={styles.picker}>
+                  <Text style={styles.inputText}>Ankunftszeit: </Text>
+                  <DateTimePicker
+                    value={arrivalTime}
+                    mode="time"
+                    display="default"
+                    onChange={onChangeArrivalTime}
+                  />
+                </View>
 
-          <Text style={styles.textInputExplainerText}>Die Zeit, die für die Frühstückspause abgezogen wird [min.]</Text>
-          <TextInput
-            placeholder="Zeit Frühstückspause in Minuten" 
-            value={breakfastPause}
-            onChangeText={text => {
-              setBreakfastPauseText(text);
-              validateNumericInput(text, setBreakfastPause, setBreakfastPauseError);
-            }}
-            keyboardType="numeric"
-            style={styles.TextInput}
-          />
-          {breakfastPauseError && <Text style={{color: 'red'}}>Ungültige Eingabe für Frühstückspause</Text>}
+                <View style={styles.picker}>
+                  <Text style={styles.inputText}>Feierabend: </Text>
+                  <DateTimePicker
+                    value={departureTime}
+                    mode="time"
+                    display="default"
+                    onChange={onChangeDepartureTime}
+                  />
+                </View>
+              </View>
 
-          <Text style={styles.textInputExplainerText}>Die Zeit, die für die Mittagspause abgezogen wird [min.]</Text>
-          <TextInput 
-            placeholder="Zeit Mittagspause in Minuten" 
-            value={lunchPause}
-            onChangeText={text => {
-              setLunchPauseText(text);
-              validateNumericInput(text, setLunchPause, setLunchPauseError);
-            }} 
-            keyboardType="numeric" 
-            style={styles.TextInput}
-          />
-          {lunchPauseError && <Text style={{color: 'red'}}>Ungültige Eingabe für Mittagspause</Text>}
+              <View style={styles.result}>
+                <Text style={styles.resultText}>Änderung im Stundenkonto:</Text>
+                <Text style={styles.adaptiveResultTextValue}>
+                {formatOvertime(results.currentOvertimeMinutes)} Std.
+                </Text>
+              </View>
 
-          <Text style={styles.textInputExplainerText}>Ab wie vielen Stunden wird die Mittagspause abgezogen</Text>
-          <TextInput 
-            placeholder="Ab wie vielen Stunden wird die Mittagspause abgezogen" 
-            value={lunchPauseAfter}
-            onChangeText={text => {
-              setLunchPauseAfterText(text);
-              validateNumericInput(text, setLunchPauseAfter, setLunchPauseAfterError);
-            }}
-            keyboardType="numeric" 
-            style={styles.TextInput}  
-          />
-          {lunchPauseAfterError && <Text style={{color: 'red'}}>Ungültige Eingabe für Mittagspause</Text>}
-        </Collapsible>
-      </View>
+              <View style={styles.result}>
+                <Text style={styles.resultText}>Soll erfüllt um: </Text>
+                <Text style={styles.resultTextValue}>{formatTime(results.requiredTime)} Uhr</Text>
+              </View>
 
-      <View>
-        <View style={styles.contentWrapper}>
-          <Text style={styles.miniHeader}>Eingabe der Zeiten</Text>
-          <View style={styles.picker}>
-            <Text>Ankunftszeit: </Text>
-            <DateTimePicker
-              value={arrivalTime}
-              mode="time"
-              display="default"
-              onChange={onChangeArrivalTime}
-            />
+              <View style={styles.result}>
+                <Text style={styles.resultText}>Mittagspause abgezogen um: </Text>
+                <Text style={styles.resultTextValue}>{formatTime(results.lunchThreshold)} Uhr</Text>
+              </View>
+
+              <Text style={{ marginTop: 10}}>Gewünschte Überstunden: {overtime} Stunden</Text>
+              <Slider
+                value={overtime}
+                onValueChange={value => setOvertime(value)}
+                minimumValue={0}
+                maximumValue={4}
+                step={0.25}
+              />
+
+              { overtime > 0 ? (
+                <View style={styles.result}>
+                  <Text style={styles.resultText}>Überstundenziel erreicht um:</Text>
+                  <Text style={styles.resultTextValue}>{formatTime(results.overtimeThreshold)} Uhr</Text>
+                </View>
+              ) : (<></>)}
+            </View>
           </View>
 
-          <View style={styles.picker}>
-            <Text>Will arbeiten bis: </Text>
-            <DateTimePicker
-              style={{ color: 'red' }}
-              value={departureTime}
-              mode="time"
-              display="default"
-              onChange={onChangeDepartureTime}
-            />
+
+          {/* Konfiguration */}
+
+          <View style={styles.configWrapper}>
+            <TouchableOpacity onPress={() => setConfigCollapsed(!configCollapsed)}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' , alignItems: 'center', }}>
+                { configCollapsed ? (
+                  <>
+                    <Text style={styles.miniHeader}>Konfiguration  ausklappen</Text>
+                    <Icon
+                      name={configCollapsed ? 'chevron-down' : 'chevron-up'}
+                      size={15}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.miniHeader}>Konfiguration  einklappen</Text>
+                    <Icon
+                      name={configCollapsed ? 'chevron-down' : 'chevron-up'}
+                      size={15}
+                    />
+                  </>
+                )}
+              </View>
+            </TouchableOpacity>
+
+            <Collapsible collapsed={configCollapsed}>
+              <Text style={styles.textInputExplainerText}>Die Sollarbeitszeit pro Tag in Stunden</Text>
+              <TextInput
+                placeholder={"Sollarbeitszeit in Stunden"}
+                value={solarHoursText.toString()}
+                onChangeText={text => {
+                  setSolarHoursText(text);
+                  validateNumericInput(text, setSolarHours, setSolarHoursError);
+                }}
+                onBlur={() => {
+                  if (solarHoursText.trim() === '') {
+                    setSolarHours('');
+                  }
+                }}
+                keyboardType="numeric"
+                style={styles.TextInput}
+              />
+              {solarHoursError && <Text style={{color: 'red'}}>Ungültige Eingabe</Text>}
+
+
+              <Text style={styles.textInputExplainerText}>Die Zeit, die für die Frühstückspause abgezogen wird [min.]</Text>
+              <TextInput
+                placeholder="Zeit Frühstückspause in Minuten" 
+                value={breakfastPauseText.toString()}
+                onChangeText={text => {
+                  setBreakfastPauseText(text);
+                  validateNumericInput(text, setBreakfastPause, setBreakfastPauseError);
+                }}
+                keyboardType="numeric"
+                style={styles.TextInput}
+              />
+              {breakfastPauseError && <Text style={{color: 'red'}}>Ungültige Eingabe für Frühstückspause</Text>}
+
+              <Text style={styles.textInputExplainerText}>Die Zeit, die für die Mittagspause abgezogen wird [min.]</Text>
+              <TextInput 
+                placeholder="Zeit Mittagspause in Minuten" 
+                value={lunchPauseText.toString()}
+                onChangeText={text => {
+                  setLunchPauseText(text);
+                  validateNumericInput(text, setLunchPause, setLunchPauseError);
+                }} 
+                keyboardType="numeric" 
+                style={styles.TextInput}
+              />
+              {lunchPauseError && <Text style={{color: 'red'}}>Ungültige Eingabe für Mittagspause</Text>}
+
+              <Text style={styles.textInputExplainerText}>Ab wie vielen Stunden wird die Mittagspause abgezogen</Text>
+              <TextInput 
+                placeholder="Ab wie vielen Stunden wird die Mittagspause abgezogen" 
+                value={lunchPauseAfterText.toString()}
+                onChangeText={text => {
+                  setLunchPauseAfterText(text);
+                  validateNumericInput(text, setLunchPauseAfter, setLunchPauseAfterError);
+                }}
+                keyboardType="numeric" 
+                style={styles.TextInput}  
+              />
+              {lunchPauseAfterError && <Text style={{color: 'red'}}>Ungültige Eingabe für Mittagspause</Text>}
+
+              {/* Funny copyright notice */}
+              <Text style={{ marginTop: 20, marginBottom: 20, fontSize: 10, textAlign: 'center' }}>Mit ❤️ von <Text style={{ fontWeight: 'bold' }}>Simon</Text></Text>
+            </Collapsible>
           </View>
 
-          <Text style={{ marginTop: 10}}>Gewünschte Überstunden: {overtime} Stunden</Text>
-          <Slider
-            value={overtime}
-            onValueChange={value => setOvertime(value)}
-            minimumValue={0}
-            maximumValue={5}
-            step={0.25}
-          /> 
         </View>
 
-      </View>
-      <View style={styles.contentWrapper}>
-        <Text style={styles.miniHeader}>Ergebnis</Text>
-        <View style={styles.resultsWrapper}>
-          <Text style={styles.result}>Du bekommst {formatOvertime(results.currentOvertimeMinutes)} Stunden gutgeschrieben</Text>
-          <Text style={styles.result}>Dein Soll ist erfüllt um: {formatTime(results.requiredTime)}</Text>
-          <Text style={styles.result}>Bis du die gewünschten Überstunden hast: {formatTime(results.overtimeThreshold)} Uhr</Text>
-          <Text style={styles.result}>Die Zeit, bei der man spätestens gehen muss, um die Mittagspause nicht abgezogen zu bekommen: {formatTime(results.lunchThreshold)} Uhr</Text>
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
