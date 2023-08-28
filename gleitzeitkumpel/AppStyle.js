@@ -1,8 +1,15 @@
-import { StyleSheet } from 'react-native'
-import { useColorScheme } from 'react-native';
+import { useEffect, useState } from 'react';
+import { StyleSheet, Dimensions, useColorScheme, useWindowDimensions } from 'react-native'
 
 export const useDynamicStyles = () => {
+
+  const [adaptiveContentPadding, setAdaptiveContentPadding] = useState(10);
   const colorScheme = useColorScheme();
+  const { width, height } = useWindowDimensions();
+
+  useEffect(() => {
+    setAdaptiveContentPadding(width > height ? 50 : 10);
+  }, [width, height])
 
   const fontColor = colorScheme === 'dark' ? 'white' : 'black';
   const backgroundColor = colorScheme === 'dark' ? 'black' : 'white';
@@ -15,6 +22,13 @@ export const useDynamicStyles = () => {
       flexDirection: 'column',
       justifyContent: 'space-between',
       backgroundColor: backgroundColor,
+    },
+    appContentWrapper: {
+      flex: 1,
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+      padding: adaptiveContentPadding,
+      marginBottom: 60,
     },
     header: {
       marginTop: 35,
@@ -57,7 +71,7 @@ export const useDynamicStyles = () => {
       paddingRight: 20,
       borderColor: sectionBorderColor,
       borderRadius: 10,
-      borderWidth: 1,
+      //borderWidth: 1,
     },
     resultsWrapper: {
       flex: 1,
@@ -73,10 +87,10 @@ export const useDynamicStyles = () => {
     },
     resultText: {
       flex: 1,
-      marginRight: 10,
+      marginRight: 12,
       color: fontColor,
-      fontSize: 16,
-      fontWeight: 'bold',
+      fontSize: 15,
+      fontWeight: '500',
       textAlign: 'right',
       flexWrap: 'wrap',
     },
@@ -106,7 +120,7 @@ export const useDynamicStyles = () => {
     },
     inputText: {
       fontSize: 16,
-      fontWeight: 'normal',
+      fontWeight: '500',
       color: fontColor,
       textAlign: 'left'
     },

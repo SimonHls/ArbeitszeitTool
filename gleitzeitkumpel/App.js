@@ -183,7 +183,7 @@ export default function App() {
         <ScrollView>
 
           {/* App content wrapper */}
-          <View style={{ marginBottom: 60, paddingLeft: 10, paddingRight: 10, }}> 
+          <View style={styles.appContentWrapper}>
 
             <View>
               <View style={styles.contentWrapper}>
