@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "name": "gleitzeitkumpel",
+    "slug": "gleitzeitkumpel",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
