@@ -3,6 +3,7 @@
     "name": "gleitzeitkumpel",
     "slug": "gleitzeitkumpel",
     "version": "1.0.0",
+    "userInterfaceStyle": "automatic",
     "assetBundlePatterns": [
       "**/*"
     ]

@@ -26,9 +26,9 @@ const TimePickerComponent = ({ value, onChange}) => {
           onChange={customOnChange}  // Verwende customOnChange
         />
       ) : (
-        <TouchableOpacity onPress={openPicker} style={{ backgroundColor: 'lightgrey', padding: 10, borderRadius:10}}>
-          <Text style={{ fontWeight: '500', fontSize: 14}}>
-            {value.toLocaleString('de-DE', {hour: '2-digit', minute:'2-digit', hourCycle: 'h23'}) + " Uhr".toLocaleLowerCase()}
+        <TouchableOpacity onPress={openPicker} style={{ backgroundColor: '#404040', padding: 10, borderRadius:10}}>
+          <Text style={{ fontWeight: '500', fontSize: 16, color: 'white'}}>
+            {value.toLocaleString('de-DE', {hour: '2-digit', minute:'2-digit', hourCycle: 'h23'})}
           </Text>
         </TouchableOpacity>
       )}
