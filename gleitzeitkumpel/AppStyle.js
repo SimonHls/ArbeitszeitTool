@@ -94,20 +94,6 @@ export const useDynamicStyles = () => {
       borderRadius: 10,
       overflow: 'hidden', // add overflow property
     },
-    adaptiveResultTextValue: {
-      marginTop: 5,
-      fontSize: 18,
-      minWidth: 120,
-      fontWeight: 'normal',
-      textAlign: 'center',
-      padding: 10,
-      paddingLeft: 15,
-      paddingRight: 15,
-      backgroundColor: 'gold',
-      color : 'black',
-      borderRadius: 10,
-      overflow: 'hidden',
-    },
     TextInput: {
       height: 40,
       borderColor: 'gray',

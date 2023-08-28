@@ -88,11 +88,14 @@ export default function App() {
       return;
     }
     try {
+      const dateToSave = arrivalTime.toISOString();
+
       await AsyncStorage.setItem('config', JSON.stringify({
         solarHours,
         breakfastPause,
         lunchPause,
-        lunchPauseAfter
+        lunchPauseAfter,
+        arrivalTime: dateToSave
       }));
 
       // log what was saved
@@ -101,7 +104,8 @@ export default function App() {
         solarHours,
         breakfastPause,
         lunchPause,
-        lunchPauseAfter
+        lunchPauseAfter,
+        arrivalTime
       });
 
     } catch (error) {
@@ -111,7 +115,7 @@ export default function App() {
 
   useEffect(() => {
     saveConfig();
-  }, [solarHours, breakfastPause, lunchPause, lunchPauseAfter]);
+  }, [solarHours, breakfastPause, lunchPause, lunchPauseAfter, arrivalTime]);
 
   useEffect(() => {
     const loadConfig = async () => {
@@ -119,6 +123,7 @@ export default function App() {
       try {
         const value = await AsyncStorage.getItem('config');
         let config = {
+          arrivalTime: new Date(1970, 0, 1, 7, 30),
           solarHours: 8,
           breakfastPause: 15,
           lunchPause: 30,
@@ -128,10 +133,18 @@ export default function App() {
           config = { ...config, ...JSON.parse(value) };
         }
     
+        // Load arrival time from config
         setSolarHours(config.solarHours);
         setBreakfastPause(config.breakfastPause);
         setLunchPause(config.lunchPause);
         setLunchPauseAfter(config.lunchPauseAfter);
+    
+        // Load arrival and departure time from config
+        setArrivalTime(new Date(config.arrivalTime));
+
+        
+        // Debug departure time
+        console.log('Departure time:');
 
         setSolarHoursText(config.solarHours.toString());
         setBreakfastPauseText(config.breakfastPause.toString());
@@ -146,6 +159,12 @@ export default function App() {
 
     loadConfig();
   }, []);
+
+  useEffect(() => {
+    if (!isConfigLoading) {
+      setDepartureTime(new Date(arrivalTime.getTime() + solarHours * 60 * 60 * 1000 + breakfastPause * 60 * 1000 + lunchPause * 60 * 1000));
+    }
+  }, [isConfigLoading]);
 
   const colorScheme = useColorScheme();
 
@@ -181,7 +200,7 @@ export default function App() {
                   </View>
 
                   <View style={styles.picker}>
-                    <Text style={styles.inputText}>Feierabend: </Text>
+                    <Text style={styles.inputText}>Feierabend (optional): </Text>
                     <View style={styles.dateTimePicker}>
                       <TimePickerComponent
                         value={departureTime}
@@ -193,7 +212,7 @@ export default function App() {
 
                 <View style={styles.result}>
                   <Text style={styles.resultText}>Änderung im Stundenkonto:</Text>
-                  <Text style={styles.adaptiveResultTextValue}>
+                  <Text style={styles.resultTextValue}>
                   {formatOvertime(results.currentOvertimeMinutes)} Std.
                   </Text>
                 </View>
