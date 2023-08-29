@@ -4,11 +4,13 @@ import { StyleSheet, Dimensions, useColorScheme, useWindowDimensions } from 'rea
 export const useDynamicStyles = () => {
 
   const [adaptiveContentPadding, setAdaptiveContentPadding] = useState(10);
+  const [adaptiveHeaderMargin, setAdaptiveHeaderMargin] = useState(10);
   const colorScheme = useColorScheme();
   const { width, height } = useWindowDimensions();
 
   useEffect(() => {
     setAdaptiveContentPadding(width > height ? 50 : 10);
+    setAdaptiveHeaderMargin(width > height ? 10 : 35);
   }, [width, height])
 
   const fontColor = colorScheme === 'dark' ? 'white' : 'black';
@@ -31,7 +33,7 @@ export const useDynamicStyles = () => {
       marginBottom: 60,
     },
     header: {
-      marginTop: 35,
+      marginTop: adaptiveHeaderMargin,
       paddingTop: 15,
       paddingBottom: 15,
       position: 'relative',
@@ -44,18 +46,11 @@ export const useDynamicStyles = () => {
       fontWeight: 'bold',
       textAlign: 'center'
     },
-    inputsWrapper: {
-      borderBottomWidth: 1,
-      borderBottomColor: sectionBorderColor,
-      padding: 10,
-      marginBottom: 10,
-    },
     contentWrapper: {
       backgroundColor: wrapperBackgroundColor,
       flex: 1,
       flexDirection: 'column',
       justifyContent: 'space-between',
-      marginTop: 10,
       padding: 10,
       borderColor: fontColor,
       borderRadius: 10,
@@ -83,7 +78,8 @@ export const useDynamicStyles = () => {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 20,
+      marginTop: 10,
+      marginBottom: 10,
     },
     resultText: {
       flex: 1,
@@ -119,15 +115,23 @@ export const useDynamicStyles = () => {
       color: fontColor,
     },
     inputText: {
-      fontSize: 16,
-      fontWeight: '500',
+      fontSize: 17 ,
+      fontWeight: '700',
       color: fontColor,
       textAlign: 'left'
+    },
+    desiredOvertimeText: {
+      marginTop: 20,
+      fontSize: 16 ,
+      fontWeight: '600',
+      color: fontColor,
+      textAlign: 'center'
     },
     picker: {
       flexDirection: 'row',
       marginTop: 10,
-      paddingBottom: 10,
+      marginRight: 5,
+      marginBottom: 10,
       justifyContent: 'space-between',
       alignItems: 'center',
     },

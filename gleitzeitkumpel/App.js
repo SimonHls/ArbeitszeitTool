@@ -6,6 +6,7 @@ import Slider from '@react-native-community/slider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDynamicStyles } from './AppStyle';
 import TimePickerComponent from './components/TimePickerComponent';
+import SectionBreak from './components/SectionBreak';
 
 
 
@@ -19,6 +20,7 @@ export default function App() {
   const [overtime, setOvertime] = useState(0);
   const [arrivalTime, setArrivalTime] = useState(new Date(1970, 0, 1, 7, 30));
   const [departureTime, setDepartureTime] = useState(new Date(arrivalTime.getTime() + solarHours * 60 * 60 * 1000 + breakfastPause * 60 * 1000 + lunchPause * 60 * 1000));
+
 
   // Zustandsvariablen für Fehlermeldungen
   const [solarHoursText, setSolarHoursText] = useState('');
@@ -99,14 +101,14 @@ export default function App() {
       }));
 
       // log what was saved
-      console.log('Saved config to AsyncStorage:');
-      console.log({
-        solarHours,
-        breakfastPause,
-        lunchPause,
-        lunchPauseAfter,
-        arrivalTime
-      });
+      // console.log('Saved config to AsyncStorage:');
+      // console.log({
+      //   solarHours,
+      //   breakfastPause,
+      //   lunchPause,
+      //   lunchPauseAfter,
+      //   arrivalTime
+      // });
 
     } catch (error) {
       console.log(error);
@@ -141,10 +143,6 @@ export default function App() {
     
         // Load arrival and departure time from config
         setArrivalTime(new Date(config.arrivalTime));
-
-        
-        // Debug departure time
-        console.log('Departure time:');
 
         setSolarHoursText(config.solarHours.toString());
         setBreakfastPauseText(config.breakfastPause.toString());
@@ -187,35 +185,17 @@ export default function App() {
 
             <View>
               <View style={styles.contentWrapper}>
-                <View style={styles.inputsWrapper}>
-                  <Text style={styles.miniHeader}>Arbeitszeiten eingeben</Text>
-                  <View style={styles.picker}>
-                    <Text style={styles.inputText}>Ankunftszeit: </Text>
-                    <View style={styles.dateTimePicker}>
-                      <TimePickerComponent
-                        value={arrivalTime}
-                        onChange={onChangeArrivalTime}
-                      />
-                    </View>
-                  </View>
-
-                  <View style={styles.picker}>
-                    <Text style={styles.inputText}>Feierabend (optional): </Text>
-                    <View style={styles.dateTimePicker}>
-                      <TimePickerComponent
-                        value={departureTime}
-                        onChange={onChangeDepartureTime}
-                      />
-                    </View>
+                <View style={styles.picker}>
+                  <Text style={styles.inputText}>Ankunftszeit eingeben: </Text>
+                  <View style={styles.dateTimePicker}>
+                    <TimePickerComponent
+                      value={arrivalTime}
+                      onChange={onChangeArrivalTime}
+                    />
                   </View>
                 </View>
 
-                <View style={styles.result}>
-                  <Text style={styles.resultText}>Änderung im Stundenkonto:</Text>
-                  <Text style={styles.resultTextValue}>
-                  {formatOvertime(results.currentOvertimeMinutes)} Std.
-                  </Text>
-                </View>
+                <SectionBreak />
 
                 <View style={styles.result}>
                   <Text style={styles.resultText}>Soll erfüllt um: </Text>
@@ -227,7 +207,7 @@ export default function App() {
                   <Text style={styles.resultTextValue}>{formatTime(results.lunchThreshold)} Uhr</Text>
                 </View>
 
-                <Text style={styles.inputText}>Gewünschte Überstunden: {overtime} Stunden</Text>
+                <Text style={styles.desiredOvertimeText}>Gewünschte Überstunden: {overtime} Stunden</Text>
                 <Slider
                   style={Platform.OS === 'android' ? { marginTop: 20, marginBottom: 20 } : {marginTop: 10, marginBottom: 10}}
                   value={overtime}
@@ -247,6 +227,29 @@ export default function App() {
                     <Text style={styles.resultTextValue}>{formatTime(results.overtimeThreshold)} Uhr</Text>
                   </View>
                 ) : (<></>)}
+                
+                <SectionBreak />
+
+                <View style={styles.picker}>
+                  <Text style={styles.inputText}>Feierabend eingeben: </Text>
+                  <View style={styles.dateTimePicker}>
+                    <TimePickerComponent
+                      value={departureTime}
+                      onChange={onChangeDepartureTime}
+                    />
+                  </View>
+                </View>
+
+                {results.currentOvertimeMinutes !== 0 ? (
+                    <View style={styles.result}>
+                    <Text style={styles.resultText}>Änderung im Stundenkonto:</Text>
+                    <Text style={styles.resultTextValue}>
+                    {results.currentOvertimeMinutes > 0 ? '+' : ''}
+                    {formatOvertime(results.currentOvertimeMinutes)} Std.
+                    </Text>
+                  </View>
+                ) : (<></>)}
+
               </View>
             </View>
 
